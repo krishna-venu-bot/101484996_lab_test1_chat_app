@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signup</title>
+</head>
+
+<body>
+  <h2>Signup Page</h2>
+
+  <input id="username" placeholder="Username"><br><br>
+  <input id="firstname" placeholder="First Name"><br><br>
+  <input id="lastname" placeholder="Last Name"><br><br>
+  <input id="password" type="password" placeholder="Password"><br><br>
+
+  <button onclick="signup()">Signup</button>
+
+  <p id="msg"></p>
+
+  <script>
+    async function signup() {
+
+      const data = {
+        username: document.getElementById("username").value,
+        firstname: document.getElementById("firstname").value,
+        lastname: document.getElementById("lastname").value,
+        password: document.getElementById("password").value
+      };
+
+      const res = await fetch("http://localhost:3000/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.text();
+
+      document.getElementById("msg").innerText = result;
+
+      if(result === "User Registered") {
+        window.location.href = "login.html";
+      }
+    }
+  </script>
+
+</body>
+</html>

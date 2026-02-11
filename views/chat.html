@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Room</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+
+<h2>Chat Application</h2>
+
+<div>
+  Logged in as: <span id="user"></span>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<br>
+
+<select id="room">
+  <option value="devops">DevOps</option>
+  <option value="cloud">Cloud Computing</option>
+  <option value="covid19">Covid19</option>
+  <option value="sports">Sports</option>
+  <option value="nodeJS">NodeJS</option>
+</select>
+
+<button onclick="joinRoom()">Join Room</button>
+<button onclick="leaveRoom()">Leave Room</button>
+
+<hr>
+
+<div id="chatbox" style="border:1px solid black; height:300px; overflow:auto;"></div>
+
+<input id="message" placeholder="Type message...">
+<button onclick="sendMessage()">Send</button>
+
+<p id="typing"></p>
+
+<script>
+
+const socket = io();
+
+const username = localStorage.getItem("username");
+
+if(!username) {
+  window.location.href = "login.html";
+}
+
+document.getElementById("user").innerText = username;
+
+let currentRoom = "";
+
+// Join Room Function
+function joinRoom() {
+  currentRoom = document.getElementById("room").value;
+
+  socket.emit("joinRoom", {
+    username: username,
+    room: currentRoom
+  });
+
+  document.getElementById("chatbox").innerHTML = "";
+}
+
+// Leave Room Function
+function leaveRoom() {
+  socket.emit("leaveRoom", currentRoom);
+  currentRoom = "";
+  document.getElementById("chatbox").innerHTML = "";
+}
+
+// Send Message Function
+function sendMessage() {
+
+  const msg = document.getElementById("message").value;
+
+  if(msg.trim() === "" || currentRoom === "") {
+    alert("Join a room and type a message first!");
+    return;
+  }
+
+  socket.emit("chatMessage", {
+    from_user: username,
+    room: currentRoom,
+    message: msg
+  });
+
+  document.getElementById("message").value = "";
+}
+
+// Receive Messages
+socket.on("message", (data) => {
+  document.getElementById("chatbox").innerHTML += data + "<br>";
+});
+
+// Typing Indicator 
+document.getElementById("message").addEventListener("keypress", () => {
+
+  if(currentRoom !== "") {
+    socket.emit("typing", {
+      username: username,
+      room: currentRoom
+    });
+  }
+
+});
+
+socket.on("typing", (user) => {
+
+  document.getElementById("typing").innerText = user + " is typing...";
+
+  setTimeout(() => {
+    document.getElementById("typing").innerText = "";
+  }, 2000);
+
+});
+
+// Logout Function
+function logout() {
+  socket.disconnect();
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
+
+</script>
+
+</body>
+</html>
